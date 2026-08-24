@@ -354,3 +354,50 @@ SELECT J.JOB_TITLE
   							   FROM DEPARTMENTS)
 CONNECT BY PRIOR EMPLOYEE_ID = MANAGER_ID
 ;
+
+-------------------------------------------------------------------------
+-- 2026 년 8월 24일 과제 
+
+-- 1. 전체 사원 중 3번째로 빠르게 입사한 사원의 이름과 입사일을 연-월-일 포멧으로 조회하시오.
+SELECT FIRST_NAME
+	 , HIRE_DATE
+	 , RANK
+  FROM (SELECT FIRST_NAME
+	 	  	 , HIRE_DATE
+	 	  	 , ROW_NUMBER() OVER( ORDER BY HIRE_DATE DESC ) AS RANK
+ 		  FROM (SELECT FIRST_NAME
+	 		 		 , TO_CHAR(HIRE_DATE, 'YYYY-MM-DD') AS HIRE_DATE
+  		  		  FROM EMPLOYEES)
+ 		 GROUP BY HIRE_DATE)
+WHERE RANK = 3
+;
+
+SELECT FIRST_NAME
+	 , HIRE_DATE
+	 , ROW_NUMBER() OVER( ORDER BY HIRE_DATE DESC ) AS RANK
+  FROM (SELECT FIRST_NAME
+	 		 , HIRE_DATE
+ 		  FROM (SELECT FIRST_NAME
+	 		 		 , TO_CHAR(HIRE_DATE, 'YYYY-MM-DD') AS HIRE_DATE
+  		  		  FROM EMPLOYEES)
+ 		 GROUP BY HIRE_DATE )
+;
+
+SELECT FIRST_NAME
+	 , DATE
+  FROM (SELECT FIRST_NAME
+	 		 , TO_CHAR(HIRE_DATE, 'YYYY-MM-DD') AS DATE
+  		  FROM EMPLOYEES)
+ GROUP BY DATE	  
+;
+
+SELECT FIRST_NAME
+	 , TO_CHAR(HIRE_DATE, 'YYYY-MM-DD')
+  FROM EMPLOYEES
+;  
+
+-- 2. 전체 사원 중 11번째로 늦게 입사한 사원의 이름과 입사일을 연-월-일 포멧으로 조회하시오.
+
+-- 3. 2006년에 입사한 사원 중 2번째로 빠르게 입사한 사원의 이름과 입사일을 연-월-일 포멧으로 조회하시오.
+
+-- 4. 3번째로 많은 사원이 수행중인 직무의 이름과 사원 수를 조회하시오.
