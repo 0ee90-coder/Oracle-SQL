@@ -1,5 +1,618 @@
 --ERD.
 
+-- UNION 규칙
+-- 집합간의 컬럼 타입이 일치해야 한다. 타입도 같아야 하고 컬럼의 개수도 똑같아야 한다.
+SELECT 1 AS NUM
+     , 'A' AS STR
+  FROM DUAL
+ UNION
+SELECT 2
+     , 'B'
+  FROM DUAL
+;
+
+SELECT 1 AS NUM
+  FROM DUAL
+ UNION ALL
+SELECT 2
+  FROM DUAL
+ UNION ALL
+SELECT NUM2
+  FROM (SELECT -1 AS NUM2
+          FROM DUAL
+         UNION ALL
+        SELECT 0 AS NUM2
+          FROM DUAL
+         UNION ALL
+        SELECT -7 AS NUM2
+          FROM DUAL
+        ORDER BY NUM2 ASC)
+;
+
+SELECT MOD (10, 3)
+     , MOD (10, 2)
+  FROM DUAL
+;
+
+-- CASE WHEN ELSE END
+-- 비교 연산. (if ~ else if ~ else)
+
+WITH TEMP AS(
+SELECT 'Y' AS FLAG
+  FROM DUAL
+ UNION
+SELECT 'N' 
+  FROM DUAL
+ UNION
+SELECT 'R'
+  FROM DUAL
+ UNION
+SELECT NULL
+  FROM DUAL
+)
+
+-- TEMP 테이블의 FLAG 컬럼의 값이 'Y' 라면 "On"으로 조회하고, 'R' 이라면 "Ready"로 조회하고, 'NULL'이라면 "Error" 아니라면 "Off"로 조회한다.
+-- NULL 은 값이 없기에 비교를 할 수 가 없다. = 비교할 때만 사용 가능
+SELECT FLAG
+     , CASE --FLAG 
+           WHEN FLAG = 'Y' THEN
+               'On'
+           WHEN FLAG = 'R' THEN
+               'Ready'
+           WHEN FLAG IS NULL THEN
+               'Error'
+           ELSE 
+               'Off'
+       END AS ON_OFF     
+  FROM TEMP 
+;
+ 
+WITH NUMBERS AS(
+     SELECT 10 AS NUM
+       FROM DUAL
+      UNION
+     SELECT 20
+       FROM DUAL
+     SELECT 30
+       FROM DUAL
+)
+
+SELECT NUM
+     , CASE
+       	   WHEN NUM >= 30 THEN
+       	        '3'
+       	   WHEN NUM >= 20 THEN
+       	        '2'
+       	   WHEN NUM >= 10 THEN
+       	        '1'
+       	   ELSE
+       	        '0'
+       END AS RESULT
+  FROM NUMBERS
+;
+
+-- 1. 사원의 사원 번호, 부서 번호, 근무 현황을 조회한다.
+--    근무 현황: 근무하는 부서가 있을 경우 "근무 중", 아닐 경우 "발령 대기"
+SELECT EMPLOYEE_ID
+     , DEPARTMENT_ID
+     , CASE
+     	   WHEN DEPARTMENT_ID IS NOT NULL THEN
+     	   		'근무 중'
+     	   ELSE
+     	        '발령 대기'
+     	   
+       END AS "근무 현황"
+  FROM EMPLOYEES
+;
+-- 2. 사원의 사원 번호, 입사일, 입사 순서를 조회한다.
+--    입사 순서: 가장 빨리 입사한 사원은 "원년 사원", 가장 늦게 입사한 사원은 "신규 사원", 아닐 경우 "사원"
+
+SELECT EMPLOYEE_ID
+     , HIRE_DATE
+     , CASE HIRE_DATE
+	       WHEN (SELECT MAX(HIRE_DATE)
+	               FROM EMPLOYEES) THEN
+	       		'원년 사원'
+	       WHEN (SELECT MIN(HIRE_DATE)
+	               FROM EMPLOYEES) THEN
+	       		'신규사원'
+     	   ELSE
+	     		'사원'
+       END AS "입사 순서"
+  FROM EMPLOYEES
+;
+
+SELECT EMPLOYEE_ID
+     , HIRE_DATE
+     , CASE HIRE_DATE
+     	  WHEN DATES.MAX_HIRE_DATE THEN
+     	      '신규 사원'
+		  WHEN DATES.MIN_HIRE_DATE THEN
+		  	  '원년 사원'
+		  ELSE
+		  	  '사원'
+       END AS "입사 순서"
+  FROM EMPLOYEES
+ CROSS JOIN (SELECT MAX(HIRE_DATE) AS MAX_HIRE_DATE
+ 				  , MIN(HIRE_DATE) AS MIN_HIRE_DATE
+ 			   FROM EMPLOYEES) DATES
+;
+
+
+-- LPAD , RPAD
+
+SELECT 'A' AS LETTER
+	 , 10 AS NUM
+	 , LPAD('A',10,'1')
+	 , LPAD(10, 10, '-')
+	 , RPAD('A',10, '1')
+	 , RPAD(10, 10, '-')
+	 , 'ABCDEFGHIJKLMNOP' --16자리
+	 , LPAD('ABCDEFGHIJKLMNOP', 10, '!')
+	 , RPAD('ABCDEFGHIJKLMNOP', 10, '!')
+	 , 'ABCDEFGHIJ' --10자리
+	 , LPAD('ABCDEFGHIJ', 10, '@')
+	 , RPAD('ABCDEFGHIJ', 10, '@')
+  FROM DUAL
+;
+
+-- 2600, 4400, 13000, 6500
+SELECT EMPLOYEE_ID
+     , SALARY
+     , SALARY / 1000
+     , TRUNC(SALARY / 1000)
+     , TRUNC(SALARY / 1000) * 1000
+  FROM EMPLOYEES
+;
+
+-- OUTER JOIN
+-- 모든 사원들의 이름과 부서의 이름을 조회한다.
+--   근무중인 부서가 없다면 null로 조회한다.
+SELECT E.FIRST_NAME
+     , D.DEPARTMENT_NAME
+  FROM EMPLOYEES E
+  LEFT OUTER JOIN DEPARTMENTS D
+    ON E.DEPARTMENT_ID = D.DEPARTMENT_ID 
+;
+
+-- 모든 부서 이름별 근무중인 사원의 수를 조회한다.
+--   근무중인 사원이 없다면 사원의 수를 0으로 조회한다.
+SELECT D.DEPARTMENT_NAME 
+	 , COUNT(E.EMPLOYEE_ID)
+  FROM DEPARTMENTS D
+  LEFT OUTER JOIN EMPLOYEES E
+    ON E.DEPARTMENT_ID = D.DEPARTMENT_ID 
+ GROUP BY D.DEPARTMENT_NAME 
+;
+
+SELECT D.DEPARTMENT_NAME
+     , COUNT(E.EMPLOYEE_ID)
+  FROM EMPLOYEES E
+ RIGHT OUTER JOIN DEPARTMENTS D
+    ON E.DEPARTMENT_ID = D.DEPARTMENT_ID 
+ GROUP BY D.DEPARTMENT_NAME 
+;
+ 
+
+-- 모든 도시의 이름과 부서의 이름을 조회한다.
+--   존재하는 부서가 없다면 null로 조회한다.
+
+SELECT L.CITY
+	 , D.DEPARTMENT_NAME 
+  FROM LOCATIONS L
+  LEFT OUTER JOIN DEPARTMENTS D
+    ON L.LOCATION_ID = D.LOCATION_ID
+;
+
+-- 모든 국가의 이름과 도시의 이름을 조회한다.
+--   존재하는 도시가 없다면 null로 조회한다.
+
+SELECT C.COUNTRY_NAME
+     , L.CITY
+  FROM COUNTRIES C
+  LEFT OUTER JOIN LOCATIONS L
+    ON C.COUNTRY_ID = L.COUNTRY_ID 
+;
+
+-- 모든 국가별 사원들의 평균 급여를 조회한다.
+--   근무하는 사원이 없다면 평균급여를 0으로 조회한다.
+
+SELECT C.COUNTRY_NAME
+	 , NVL(AVG(E.SALARY), 0) AS AVG_SALARY
+  FROM COUNTRIES C
+ INNER JOIN LOCATIONS L
+    ON L.COUNTRY_ID = C.COUNTRY_ID 
+ INNER JOIN DEPARTMENTS D
+    ON D.LOCATION_ID = L.LOCATION_ID 
+  LEFT OUTER JOIN EMPLOYEES E
+    ON E.DEPARTMENT_ID = D.DEPARTMENT_ID 
+ GROUP BY C.COUNTRY_NAME
+;
+  
+-- 모든 도시의 이름, 도시에 존재하는 부서명, 부서에서 근무중인 사원명, 사원이 수행하는 직무명을 조회한다.
+-- 부서명, 사원명,직무명이 없을 경우 NULL로 조회한다. (138ROWS)  --LEFT 반복X 다시 생각해보기 
+
+SELECT L.CITY
+     , D.DEPARTMENT_NAME
+     , E.FIRST_NAME
+     , J.JOB_TITLE
+  FROM LOCATIONS L
+  LEFT OUTER JOIN DEPARTMENTS D
+    ON D.LOCATION_ID = L.LOCATION_ID 
+  LEFT OUTER JOIN EMPLOYEES E
+    ON E.DEPARTMENT_ID = D.DEPARTMENT_ID 
+  LEFT OUTER JOIN JOBS J
+    ON J.JOB_ID = E.JOB_ID 
+;   
+    
+-- Scala Query
+
+-- 사원의 이름과 직무명을 조회한다. 이때, 직무 테이블은 INNER JOIN하지 않는다.
+SELECT E.FIRST_NAME
+     , E.JOB_ID
+     , (SELECT J.JOB_TITLE
+          FROM JOBS J
+         WHERE J.JOB_ID = E.JOB_ID)
+  FROM EMPLOYEES E
+;
+
+-- 사원의 이름과 부서명을 조회한다. 이때, 부서 테이블은 INNER JOIN하지 않는다.
+SELECT E.FIRST_NAME
+	 , E.DEPARTMENT_ID
+	 , (SELECT D.DEPARTMENT_NAME
+	      FROM DEPARTMENTS D
+	     WHERE D.DEPARTMENT_ID = E.DEPARTMENT_ID)
+  FROM EMPLOYEES E
+;  
+-- 사원의 이름과 상사의 이름을 조회한다. 이때, 사원(상사) 테이블은 INNER JOIN하지 않는다.
+SELECT E.FIRST_NAME
+	 , E.MANAGER_ID 
+	 , (SELECT EM.FIRST_NAME
+	      FROM EMPLOYEES EM
+	     WHERE EM.EMPLOYEE_ID = E.MANAGER_ID)
+  FROM EMPLOYEES E
+;
+
+-- 사원의 이름과 급여, 전체 사원들의 평균 급여를 조회한다.
+
+SELECT E.FIRST_NAME
+	 , E.SALARY
+	 , (SELECT AVG(SALARY)
+  		  FROM EMPLOYEES)	 
+  FROM EMPLOYEES E
+;
+
+-- Sub query join
+-- 사원이 근무중인 부서에서 최저 급여를 받는 사원의 이름, 급여, 부서번호를 조회한다.
+SELECT FIRST_NAME
+     , SALARY
+     , DEPARTMENT_ID
+  FROM EMPLOYEES E
+ WHERE SALARY = (SELECT MIN(SALARY)
+ 				   FROM EMPLOYEES E2
+ 				  WHERE E2.DEPARTMENT_ID = E.DEPARTMENT_ID)
+; 				   
+ 
+ 
+-- 사원이 수행중인 직무에서 최저 급여를 받는 사원의 이름, 급여, 직무아이디를 조회한다.
+SELECT FIRST_NAME
+     , SALARY
+     , JOB_ID
+  FROM EMPLOYEES E
+ WHERE SALARY = (SELECT MIN(SALARY)
+                   FROM EMPLOYEES E2
+                  WHERE E2.JOB_ID = E.JOB_ID)
+;
+
+-- 사원이 근무중인 부서에서 부서장으로 근무하는 사원의 이름, 급여, 부서번호를 조회한다.
+SELECT E.FIRST_NAME
+     , E.SALARY 
+     , E.DEPARTMENT_ID 
+  FROM EMPLOYEES E
+ WHERE E.EMPLOYEE_ID = (SELECT E.MANAGER_ID 
+                          FROM DEPARTMENTS D
+                         WHERE D.DEPARTMENT_ID = E.DEPARTMENT_ID )
+;
+-- Oracle Concat
+-- 사원의 이름과 성을 한 컬럼으로 조회한다.
+SELECT FIRST_NAME ||' '|| LAST_NAME AS NAME
+  FROM EMPLOYEES 
+;
+
+-- 사원의 이름, 사원이 근무중인 부서의 이름, 부서장 사원 번호를 한 컬럼으로 조회한다.
+SELECT E.FIRST_NAME || ' ' ||D.DEPARTMENT_NAME || ' ' ||D.MANAGER_ID
+  FROM EMPLOYEES E
+ INNER JOIN DEPARTMENTS D
+    ON D.DEPARTMENT_ID = E.DEPARTMENT_ID 
+;
+
+-- 사원의 이름, 사원이 근무중인 부서의 이름과 부서장 사원의 이름을 한 컬럼으로 조회한다. 
+SELECT E.FIRST_NAME || ' ' ||D.DEPARTMENT_NAME || ' ' ||DM.FIRST_NAME
+  FROM EMPLOYEES E
+ INNER JOIN DEPARTMENTS D
+    ON D.DEPARTMENT_ID = E.DEPARTMENT_ID 
+ INNER JOIN EMPLOYEES DM
+    ON D.MANAGER_ID = DM.EMPLOYEE_ID 
+;
+-- 사원의 이름, 사원이 근무중인 부서의 이름과 부서장 사원의 이름을 한 컬럼으로 조회한다. (Scalar Query)
+SELECT E.FIRST_NAME
+     , DEPARTMENT_NAME
+     , FIRST_NAME
+  FROM EMPLOYEES E
+ WHERE (SELECT FIRST_NAME
+ 		  FROM DEPARTMENTS D
+ 		 WHERE D.MANAGER_ID = E.EMPLOYEE_ID)
+; 		 
+
+-- [DENSE_]RANK() OVER(), ROW_NUMBER() OVER() 없이 조회.  페이지네이션
+-- 사원 중 작은 급여를 받는 10명을 조회한다.
+SELECT FIRST_NAME
+     , SALARY
+--     , ROWNUM  -- 정렬된 상태에서 ROWNUM이 붙는것 
+  FROM(SELECT FIRST_NAME
+     	    , SALARY
+	     FROM EMPLOYEES
+	 ORDER BY SALARY ASC)
+WHERE ROWNUM <= 10
+;
+-- 사원 중 많은 급여를 받는 10명을 조회한다.
+SELECT FIRST_NAME
+	 , SALARY 
+  FROM (SELECT FIRST_NAME
+			 , SALARY
+  		  FROM EMPLOYEES
+         ORDER BY SALARY DESC)
+ WHERE ROWNUM <= 10        
+;
+-- 많은 급여를 받는 중 5 ~ 9 번째 사원을 조회한다.  -- PAGI NATION 
+SELECT FIRST_NAME
+	 , SALARY
+  FROM (SELECT FIRST_NAME
+	 		 , SALARY
+			 , ROWNUM AS RNUM
+  		 FROM(SELECT FIRST_NAME
+    	     	   , SALARY
+         		FROM EMPLOYEES
+ 			   ORDER BY SALARY DESC)
+			   WHERE ROWNUM <= 9)
+ WHERE RNUM >= 5
+; 
+
+-- 부서 정보(정렬없음) 중 6번 ~ 12번째 까지의 부서 이름을 조회한다. PAGINATION
+SELECT DEPARTMENT_NAME
+  FROM DEPARTMENTS
+;
+
+SELECT DEPARTMENT_NAME
+     , ROWNUM AS RNUM
+  FROM(SELECT DEPARTMENT_NAME
+  		 FROM DEPARTMENTS
+  		WHERE ROWNUM <= 12)
+;
+
+SELECT DEPARTMENT_NAME
+	 , RNUM
+  FROM (SELECT DEPARTMENT_NAME
+     		 , ROWNUM AS RNUM
+  		  FROM(SELECT DEPARTMENT_NAME
+  		 		 FROM DEPARTMENTS
+  				WHERE ROWNUM <= 12))
+ WHERE RNUM >= 6
+;
+-- 부서장이 있는 부서를 부서명으로 오름차순 정렬한 결과에서 2번째부터 7번째까지 부서명만 조회한다.
+SELECT DEPARTMENT_NAME
+     , ROWNUM
+  FROM DEPARTMENTS
+ WHERE ROWNUM <= 7
+ ORDER BY DEPARTMENT_NAME ASC
+;
+
+SELECT DEPARTMENT_NAME
+	 , RNUM
+  FROM (SELECT DEPARTMENT_NAME
+          FROM DEPARTMENTS
+         WHERE MANAGER_ID IS NOT NLL
+      	     , ROWNUM AS RNUM
+  		  FROM (SELECT DEPARTMENT_NAME)
+ 		 WHERE ROWNUM <= 7
+ 		 ORDER BY DEPARTMENT_NAME ASC)
+WHERE RNUM >= 2
+;
+
+-- 커미션을 포함한 급여순으로 사원들을 내림차순 정렬하고 
+-- 그 중 7번째 ~ 16번째 까지의 사원 이름과 급여를 조회한다.
+-- ROWNUM을 이용한 풀이
+SELECT FIRST_NAME
+	 , SALARY
+	 , (NVL(COMMISSION_PCT, 0)* SALARY) + SALARY AS TOTAL_SALARY
+  FROM EMPLOYEES
+ ORDER BY TOTAL_SALARY DESC
+;
+
+SELECT FIRST_NAME
+	 , SALARY
+	 , ROWNUM
+  FROM (SELECT FIRST_NAME
+	 		 , SALARY
+	 		 , (NVL(COMMISSION_PCT, 0) * SALARY) + SALARY AS TOTAL_SALARY
+  		  FROM EMPLOYEES
+ 		 ORDER BY TOTAL_SALARY DESC)
+ WHERE ROWNUM <= 16
+;
+
+SELECT FIRST_NAME
+	 , SALARY
+	 , RNUM 
+  FROM (SELECT FIRST_NAME
+	 		 , SALARY
+	 		 , ROWNUM AS RNUM
+  		  FROM (SELECT FIRST_NAME
+	 		 		 , SALARY
+	 		 		 , (NVL(COMMISSION_PCT, 0) * SALARY) + SALARY AS TOTAL_SALARY
+  		 		  FROM EMPLOYEES
+ 				 ORDER BY TOTAL_SALARY DESC)
+ 		 WHERE ROWNUM <= 16)
+WHERE RNUM >= 7
+;
+
+--ROW_NUMBER()을 이용한 풀이 순위,등수 구할 때 필수 ,  정렬필요할때 사용하면 좋음
+SELECT FIRST_NAME
+     , SALARY
+     , RANK
+  FROM (SELECT FIRST_NAME
+			 , SALARY
+			 , RANK 
+		  FROM (SELECT FIRST_NAME
+				     , SALARY
+					 , ROW_NUMBER() OVER( ORDER BY TOTAL_SALARY DESC ) AS RANK
+				  FROM (SELECT FIRST_NAME
+						     , SALARY	
+						     , (NVL(COMMISSION_PCT, 0) * SALARY) + SALARY AS TOTAL_SALARY
+						  FROM EMPLOYEES))
+		WHERE RANK <= 16 )
+WHERE RA
+
+SELECT FIRST_NAME
+	 , TOTAL_SALARY
+	 , RNUM
+  FROM (SELECT FIRST_NAME
+		     , TOTAL_SALARY
+			 , ROW_NUMBER() OVER( ORDER BY TOTAL_SALARY DESC ) AS RNUM
+		  FROM (SELECT FIRST_NAME
+				     , SALARY	
+				     , (NVL(COMMISSION_PCT, 0) * SALARY) + SALARY AS TOTAL_SALARY
+				  FROM EMPLOYEES))
+WHERE RNUM <= 16
+  AND RNUM >= 7
+;
+
+SELECT FIRST_NAME
+     , TOTAL_SALARY
+	 , ROW_NUMBER() OVER( ORDER BY TOTAL_SALARY DESC ) AS RNUM
+  FROM (SELECT FIRST_NAME
+		     , SALARY	
+		     , (NVL(COMMISSION_PCT, 0) * SALARY) + SALARY AS TOTAL_SALARY
+		  FROM EMPLOYEES)
+;
+
+SELECT FIRST_NAME
+     , SALARY
+     , (NVL(COMMISSION_PCT, 0) * SALARY) + SALARY AS TOTAL_SALARY
+  FROM EMPLOYEES
+ ORDER BY TOTAL_SALARY DESC
+;
+
+
+
+
+
+
+	 
+-- SALARY 별로 ROW 순위 구하기 (가장 높은 SALARY가 1등)
+
+-- RANK() OVER() - ANSI
+-- 공동 1등 3명, 2등 2명, 3등 3명, 4등 1명 --> 1 1 1 4 4 6 6 6 9
+SELECT SALARY
+	 , RANK() OVER( ORDER BY SALARY DESC ) AS RANK
+  FROM EMPLOYEES 
+;
+
+-- DENSE_RANK() OVER() - ANSI
+-- 공동 1등 3명, 2등 2명, 3등 3명, 4등 1명 --> 1 1 1 2 2 3 3 3 4
+SELECT SALARY
+	 , DENSE_RANK() OVER( ORDER BY SALARY DESC ) AS RANK
+  FROM EMPLOYEES 
+;
+
+-- ROW_NUMBER() OVER() - ANSI
+-- 공동 1등 3명, 2등 2명, 3등 3명, 4등 1명 --> 1 2 3 4 5 6 7 8 9
+SELECT SALARY
+	 , ROW_NUMBER() OVER( ORDER BY SALARY DESC ) AS RANK
+  FROM EMPLOYEES 
+;
+
+-- ROWNUM - ANSI X
+-- 공동 1등 3명, 2등 2명, 3등 3명, 4등 1명 --> 1 2 3 4 5 6 7 8 9
+
+
+-- 70, 80, 90, 100 번 부서에서 근무중인 사원의 이름과 부서명을 조회한다.
+SELECT E.FIRST_NAME 
+	 , D.DEPARTMENT_NAME
+  FROM EMPLOYEES E
+ INNER JOIN DEPARTMENTS D
+    ON E.DEPARTMENT_ID = D.DEPARTMENT_ID 
+ WHERE D.DEPARTMENT_ID IN (70,80,90,100)
+ ORDER BY D.DEPARTMENT_ID
+;
+-- INLINE VIEW 를 이용한 성능 향상
+SELECT E.FIRST_NAME 
+	 , D.DEPARTMENT_NAME
+  FROM (SELECT FIRST_NAME
+  			 , DEPARTMENT_ID
+  		  FROM EMPLOYEES
+  		 WHERE DEPARTMENT_ID IN (70,80,90,100))E
+ INNER JOIN (SELECT DEPARTMENT_NAME
+ 				  , DEPARTMENT_ID 
+ 			   FROM DEPARTMENTS
+ 			  WHERE DEPARTMENT_ID IN(70,80,90,100)) D
+    ON E.DEPARTMENT_ID = D.DEPARTMENT_ID 
+ ORDER BY D.DEPARTMENT_ID
+;
+
+-- 입사 연도별 최고 급여를 조회한다.
+SELECT TO_CHAR(HIRE_DATE, 'YYYY')
+	 , MAX(SALARY)
+  FROM EMPLOYEES
+ GROUP BY TO_CHAR(HIRE_DATE, 'YYYY')
+ ORDER BY TO_CHAR(HIRE_DATE, 'YYYY') ASC
+;
+-- INLINE VIEW 를 이용한 성능 향상
+SELECT SALARY
+	 , TO_CHAR(HIRE_DATE, 'YYYY') AS HIRE_YEAR
+  FROM EMPLOYEES
+;
+
+SELECT HIRE_YEAR
+	 , MAX(SALARY)
+  FROM (SELECT SALARY
+			 , TO_CHAR(HIRE_DATE, 'YYYY') AS HIRE_YEAR
+  		  FROM EMPLOYEES)
+ GROUP BY HIRE_YEAR
+ ORDER BY HIRE_YEAR ASC
+;
+-- 입사 연도별 사원의 수를 조회한다.
+
+SELECT HIRE_YEAR
+	 , COUNT(EMPLOYEE_ID)
+  FROM (SELECT EMPLOYEE_ID 
+			 , TO_CHAR(HIRE_DATE, 'YYYY') AS HIRE_YEAR
+  		  FROM EMPLOYEES) 
+ GROUP BY HIRE_YEAR
+ ORDER BY HIRE_YEAR ASC
+;
+
+-- 사원 이름의 첫 번째 글자만 가져온다. (ANSI X)
+SELECT FIRST_NAME
+	 , SUBSTR(FIRST_NAME , 1, 1)  -- 첫번째 글자를 1개 가지고 와라
+  FROM EMPLOYEES
+;
+-- 사원 이름의 첫 번째 글자별 급여 합계를 조회한다.
+SELECT SUBSTR(FIRST_NAME, 1, 1)
+     , SUM(SALARY)
+  FROM EMPLOYEES
+ GROUP BY SUBSTR(FIRST_NAME, 1, 1)
+ ORDER BY SUBSTR(FIRST_NAME, 1, 1) ASC
+;
+
+-- INLINE VIEW 를 이용한 성능 향상
+SELECT FIRST_LETTER 
+	 , SUM(SALARY)
+  FROM (SELECT SALARY
+  			 , SUBSTR(FIRST_NAME, 1, 1) AS FIRST_LETTER
+  		  FROM EMPLOYEES)
+ GROUP BY FIRST_LETTER
+ ORDER BY FIRST_LETTER ASC
+;
 -- RECURSIVE JOIN
 --	MENU 임시테이블 만들기
 WITH MENU AS (
