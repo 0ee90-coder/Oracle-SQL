@@ -200,7 +200,13 @@ SELECT J.JOB_TITLE
 -- 19. 직무아이디별 사원의 최고급여를 조회한다.
 
 -- 20. 부서명별 사원의 수를 조회한다.
-
+SELECT D.DEPARTMENT_NAME 
+	 , COUNT(EMPLOYEE_ID) AS EMP_CNT
+  FROM EMPLOYEES E
+ INNER JOIN DEPARTMENTS D
+    ON D.DEPARTMENT_ID = E.DEPARTMENT_ID 
+ GROUP BY D.DEPARTMENT_NAME 
+;
 -- 21. 직무명별 사원의 평균급여를 조회한다.
 
 -- 22. 부서명, 직무명별 사원의 수와 평균급여를 조회한다.
