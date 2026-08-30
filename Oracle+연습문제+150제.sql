@@ -292,20 +292,20 @@ SELECT EMPLOYEE_ID
 ;
 
 -- 26. 이름이나 성에 'A' 혹은 'a' 가 포함된 사원의 모든 정보를 조회한다.
-SELECT  
-(SELECT EMPLOYEE_ID
-	  ,FIRST_NAME 
-	  ,LAST_NAME 
-	  ,EMAIL
-	  ,PHONE_NUMBER 
-	  ,HIRE_DATE
-	  ,JOB_ID
-	  ,SALARY
-	  ,COMMISSION_PCT
-	  ,MANAGER_ID
-	  ,DEPARTMENT_ID
-	  ,LOWER(FIRST_NAME || LAST_NAME) AS NAME
-  FROM EMPLOYEES)
+SELECT 
+  FROM (SELECT EMPLOYEE_ID
+			 ,FIRST_NAME 
+			 ,LAST_NAME 
+			 ,EMAIL
+			 ,PHONE_NUMBER 
+			 ,HIRE_DATE
+			 ,JOB_ID
+			 ,SALARY
+			 ,COMMISSION_PCT
+			 ,MANAGER_ID
+			 ,DEPARTMENT_ID
+			 ,LOWER(FIRST_NAME || LAST_NAME) AS NAME
+		 FROM EMPLOYEES)
   WHERE NAME LIKE '%a%'
 /*  
  WHERE FIRST_NAME LIKE '%A%'
@@ -378,21 +378,128 @@ SELECT TO_CHAR(HIRE_DATE, 'YYYY')
   FROM EMPLOYEES
 ;
 -- 37. MOD 함수를 통해 사원번호가 홀수면 남자, 짝수면 여자 로 구분해 조회한다. MOD(값, 나눌값)
+ SELECT EMPLOYEE_ID
+ 	  ,	CASE MOD(EMPLOYEE_ID, 2)
+ 			WHEN 0 THEN
+ 				'여자'
+ 			ELSE 
+ 				'남자'
+ 		END AS 성별			
+   FROM EMPLOYEES
+;
+   
+SELECT EMPLOYEE_ID
+	 , CASE MOD(EMPLOYEE_ID, 2)
+	 	   WHEN 0 THEN
+	 	   	   '여자'
+	 	   ELSE 
+	 	       '남자'
+	   END AS 성별
+  FROM EMPLOYEES
+;
 -- 38. 사원 모든 정보 중 이메일만 모두 소문자로 변경하여 조회한다.
+SELECT EMPLOYEE_ID
+	 , FIRST_NAME
+	 , LAST_NAME
+	 , LOWER(EMAIL)
+	 , PHONE_NUMBER
+	 , HIRE_DATE
+	 , JOB_ID
+	 , SALARY
+	 , COMMISSION_PCT
+	 , MANAGER_ID
+	 , DEPARTMENT_ID
+  FROM EMPLOYEES
+;  
 -- 39. 사원의 급여를 TRUNC(소수점 버림) 함수를 사용해 100 단위는 버린채 다음과 같이 조회한다. 
 --     예> 3700 -> 3000, 12700 -> 12000
+SELECT SALARY
+     , TRUNC(SALARY / 1000) * 1000
+  FROM EMPLOYEES
+;
+
 -- 40. 100단위를 버린 사원의 급여 별 사원의 수를 조회한다.
+
+SELECT SALARY
+	 , COUNT(EMPLOYEE_ID)
+  FROM (SELECT EMPLOYEE_ID
+             , TRUNC(SALARY / 1000) * 1000 AS SALARY
+          FROM EMPLOYEES)
+GROUP BY SALARY
+;
+
 -- 41. 모든 사원들의 이름을 10자리로 맞추어 조회한다.
+SELECT FIRST_NAME
+	 , LENGTH(FIRST_NAME)
+	 , LPAD(FIRST_NAME,10, ' ')
+	 , LENGTH(LPAD(FIRST_NAME,10, ' '))
+  FROM EMPLOYEES
+;
+
 -- 42. 사원의 이름과 성을 이용해 EMAIL과 같은 값으로 만들어 조회한다.
+--     FIRST_NAME에서 첫 번째 글자 1개, LAST_NAME에서 첫 번째 부터 7개 ==> 총 8자리.
+
+SELECT FIRST_NAME
+     , LAST_NAME
+     , EMAIL
+     , SUBSTR(FIRST_NAME, 1 ,1) || UPPER(SUBSTR(LAST_NAME, 1, 7))
+  FROM EMPLOYEES 
+;
 -- 43. 모든 사원들의 이름을 10자리로 변환해 조회한다. 예> 이름 => "        이름"
+SELECT FIRST_NAME
+	 , LENGTH(FIRST_NAME)
+	 , LPAD(FIRST_NAME,10, ' ')
+	 , LENGTH(LPAD(FIRST_NAME,10, ' '))
+  FROM EMPLOYEES
+;
+
 -- 44. 모든 사원들의 성을 10자리로 변환해 조회한다. 예> 성 => "성         "
+SELECT LAST_NAME
+	 , LENGTH(LAST_NAME)
+	 , RPAD(LAST_NAME,10, ' ')
+	 , LENGTH(LPAD(LAST_NAME,10, ' '))
+  FROM EMPLOYEES
+;
 -- 45. 모든 사원들의 모든 정보를 조회한다. 
 --     단, 커미션을 받는 사원은 "커미션여부" 컬럼에 "Y"를, 아닌 경우 "N"으로 조회한다.
+SELECT EMPLOYEE_ID
+	 , FIRST_NAME 
+	 , LAST_NAME 
+	  ,EMAIL
+	  ,PHONE_NUMBER 
+	  ,HIRE_DATE
+	  ,JOB_ID
+	  ,SALARY
+	  ,COMMISSION_PCT
+	  ,MANAGER_ID
+	  ,DEPARTMENT_ID
+	  CASE
+	  	  WHEN COMMISSION_PCT IS NULL THEN
+	  	      'N'
+	 	  ELSE 
+	  	      'Y'
+	  END AS "커미션 여부"
+  FROM EMPLOYEES	  	
+;
 -- 46. 사원의 모든 정보를 조회한다. 
 --     사원의 급여가 5000 이하이면 "사원", 
 --                7000 이하이면 "대리", 
 --                9000 이하이면 "과장", 
 --                그 외에는 "임원" 으로 조회한다.
+
+SELECT
+       CASE 
+      	   WHEN SALARY <= 5000 THEN
+      	   		'사원'
+      	   WHEN SALARY <= 5000 THEN
+      	   		'대리'
+      	   WHEN SALARY <= 5000 THEN
+      	   		'과장'
+      	   ELSE 
+      	   		'임원'
+       END AS 직급
+  FROM 
+;
 -- 47. 모든 사원들의 모든 정보를 급여 오름차순 정렬하여 조회한다.
 SELECT EMPLOYEE_ID
 	  ,FIRST_NAME 
@@ -2196,7 +2303,24 @@ SELECT E.EMPLOYEE_ID
   -- 내 사원번호가 없다 다른사람들의 상사번호에 
 ;
 -- 150. 사원번호가 100번인 사원의 사원번호, 이름과 
---      사원번호로 내림차순 정렬된 사원의 사원번호, 이름을 조회한다.
+--      사원번호로 내림차순 정렬된 사원의 사원번호, 이름을 조회한다. (중복 제거)
+
+SELECT EMPLOYEE_ID
+     , FIRST_NAME
+  FROM EMPLOYEES
+ WHERE EMPLOYEE_ID = 100
+ -- UNION 중복 제거되고 정렬 유지 안됨.
+ -- UNION ALL 중복 제거하지 않고 정렬 유지됨.
+ UNION ALL
+SELECT EMPLOYEE_ID
+	 , FIRST_NAME
+  FROM (SELECT EMPLOYEE_ID
+			 , FIRST_NAME
+  		  FROM EMPLOYEES
+  		 WHERE EMPLOYEE_ID != 100
+ 		 ORDER BY EMPLOYEE_ID DESC)
+;	 
+
 /*조회 예
 --------------------
 100    Steven
@@ -2213,6 +2337,9 @@ SELECT E.EMPLOYEE_ID
 196    Alana
 ...
 */
+
+
+
 
 -- 151. 모든 사원들의 이름과 부서번호, 부서명을 조회한다. 근무중인 부서가 없는 경우도 조회한다.
 SELECT E.FIRST_NAME
@@ -2238,7 +2365,7 @@ SELECT E.FIRST_NAME
 
 -- 153. 부서별로 근무중인 사원의 수를 조회한다. 근무중인 사원이 없는 부서는 0으로 조회한다.
 SELECT D.DEPARTMENT_NAME
-	 , NVL(COUNT(E.EMPLOYEE_ID), 0)
+	 , COUNT(E.EMPLOYEE_ID)
   FROM DEPARTMENTS D
   LEFT OUTER JOIN EMPLOYEES E
     ON E.DEPARTMENT_ID = D.DEPARTMENT_ID
@@ -2247,7 +2374,7 @@ SELECT D.DEPARTMENT_NAME
 
 -- 154. 도시별로 존재하는 부서의 수를 조회한다. 존재하는 부서가 없는 도시는 0으로 조회한다.
 SELECT L.CITY
-     , NVL(COUNT(D.DEPARTMENT_ID), 0)
+     , COUNT(D.DEPARTMENT_ID)
   FROM LOCATIONS L
   LEFT OUTER JOIN DEPARTMENTS D
     ON D.LOCATION_ID = L.LOCATION_ID 
@@ -2256,12 +2383,34 @@ SELECT L.CITY
 
 -- 155. 도시별로 근무중인 사원의 수를 조회한다. 근무중인 사원이 없는 도시는 0으로 조회한다.
 SELECT L.CITY
-	 , NVL(COUNT(EMPLOYEE_ID), 0)
+	 , COUNT(E.EMPLOYEE_ID)
   FROM EMPLOYEES E
  INNER JOIN DEPARTMENTS D
     ON D.DEPARTMENT_ID = E.DEPARTMENT_ID 
  RIGHT OUTER JOIN LOCATIONS L
     ON L.LOCATION_ID = D.LOCATION_ID 
+ GROUP BY L.CITY
+;
+
+SELECT L.CITY
+	 , COUNT(E.EMPLOYEE_ID)
+  FROM LOCATIONS L
+  LEFT OUTER JOIN DEPARTMENTS D
+    ON L.LOCATION_ID = D.LOCATION_ID 
+ INNER JOIN EMPLOYEES E
+    ON D.DEPARTMENT_ID = E.DEPARTMENT_ID 
+ GROUP BY L.CITY
+;
+-- LEFT JOIN 할 때는 인라인 뷰를 사용하여 하는 방법
+SELECT L.CITY  
+	 , COUNT(D_E.EMPLOYEE_ID)
+  FROM LOCATIONS L
+  LEFT OUTER JOIN (SELECT D.LOCATION_ID 
+  					    , E.EMPLOYEE_ID 
+                     FROM DEPARTMENTS D
+                    INNER JOIN EMPLOYEES E 
+                       ON D.DEPARTMENT_ID = E.DEPARTMENT_ID) D_E
+    ON L.LOCATION_ID = D_E.LOCATION_ID                    
  GROUP BY L.CITY
 ;
 
@@ -2284,7 +2433,7 @@ SELECT JH.JOB_ID
 ;
 
 -- 157. 모든 사원의 현재 수행중인 직무명, 현재 근무중인 부서명, 이전에 수행한 직무명, 이전에 근무한 부서명을 조회한다.
---     과거 직무와 이전 부서명이 없는 사원도 함께 조회한다.
+--     과거 직무와 이전 부서명이 없는 사원도 함께 조회한다. -- 현재 수행중인 직무명, 현재 근무중인 부서명 여기 INNER 
 
 SELECT J.JOB_TITLE
 	 , D.DEPARTMENT_NAME
@@ -2293,7 +2442,7 @@ SELECT J.JOB_TITLE
   FROM EMPLOYEES E
  INNER JOIN JOBS J
     ON J.JOB_ID = E.JOB_ID
-  LEFT OUTER JOIN DEPARTMENTS D
+ INNER JOIN DEPARTMENTS D
     ON D.DEPARTMENT_ID = E.DEPARTMENT_ID 
   LEFT OUTER JOIN JOB_HISTORY JH
     ON JH.EMPLOYEE_ID  = E.EMPLOYEE_ID 
@@ -2303,6 +2452,41 @@ SELECT J.JOB_TITLE
     ON D_OLD.DEPARTMENT_ID = JH.DEPARTMENT_ID 
   ;
 
+SELECT J.JOB_TITLE
+	 , D.DEPARTMENT_NAME
+	 , J_OLD.JOB_TITLE
+	 , D_OLD.DEPARTMENT_NAME 
+  FROM EMPLOYEES E
+ INNER JOIN JOBS J
+    ON J.JOB_ID = E.JOB_ID
+ INNER JOIN DEPARTMENTS D
+    ON D.DEPARTMENT_ID = E.DEPARTMENT_ID 
+  LEFT OUTER JOIN JOB_HISTORY JH
+    ON JH.EMPLOYEE_ID  = E.EMPLOYEE_ID 
+ INNER JOIN JOBS J_OLD
+    ON J_OLD.JOB_ID = JH.JOB_ID 
+ INNER JOIN DEPARTMENTS D_OLD
+    ON D_OLD.DEPARTMENT_ID = JH.DEPARTMENT_ID 
+  ;
+
+SELECT J.JOB_TITLE
+	 , D.DEPARTMENT_NAME
+	 , JH_D_J.JOB_TITLE
+	 , JH_D_J.DEPARTMENT_NAME 
+  FROM EMPLOYEES E
+ INNER JOIN JOBS J
+    ON J.JOB_ID = E.JOB_ID
+ INNER JOIN DEPARTMENTS D
+    ON D.DEPARTMENT_ID = E.DEPARTMENT_ID 
+  LEFT OUTER JOIN (SELECT D_OLD.DEPARTMENT_ID
+   						, J_OLD.JOB_TITLE
+  					 FROM JOB_HISTORY JH
+ 					INNER JOIN JOBS J_OLD
+					   ON J_OLD.JOB_ID = JH.JOB_ID 
+					INNER JOIN DEPARTMENTS D_OLD
+				       ON D_OLD.DEPARTMENT_ID = JH.DEPARTMENT_ID) JH_D_J
+    ON JH_D_J.EMPLOYEE_ID = E.EMPLOYEE_ID
+  ;
   
   
   
