@@ -1,5 +1,17 @@
 --ERD.
 
+-- UPDATE
+UPDATE TABLE NAME
+   SET COLUMN_NAME = NEW VALUE
+   SET COLUMN_NAME = NEW VALUE
+ WHERE CONDITION
+;
+
+-- 스파이더맨 브랜드 뉴 데이의 관람등급을 ALL 로 변경한다.
+UPDATE MV
+   SET MV_RTNG = 'ALL'
+;
+
 -- UNION 규칙
 -- 집합간의 컬럼 타입이 일치해야 한다. 타입도 같아야 하고 컬럼의 개수도 똑같아야 한다.
 SELECT 1 AS NUM
