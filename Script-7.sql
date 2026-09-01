@@ -1,0 +1,88 @@
+SELECT MV_ID
+     , TTL
+     , MV_RTNG
+     , RNNG_TM
+     , TO_CHAR(RLS_DT, 'YYYY-MM-DD') AS RLS_DT
+     , SMMR
+     , MAIN_PSTR_URL
+     , FB_URL
+     , X_URL
+     , INSTA_URL
+     , TGLN
+     , ORGNL_TTL
+     , PLYNG
+     , ORGNL_LNGG
+     , BDGT
+     , BX_OFFC_RVN
+  FROM MV
+ WHERE DEL_YN = 'N'
+   AND MV_ID = :mvId
+;
+
+
+SELECT G.GNR_ID 
+	 , G.NM
+  FROM GNR G
+ INNER JOIN MV_GNR MG
+    ON G.GNR_ID = MG.GNR_ID
+ WHERE MG.MV_ID = :mvId
+;
+
+SELECT K.KWRD_ID
+	 , K.KWRD_NM
+  FROM KWRD K
+ INNER JOIN MV_KWRD MK
+    ON K.KWRD_ID = MK.KWRD_ID
+ WHERE MK.KWRD_ID = :mvId
+;
+
+SELECT V.VD_ID
+	 , V.MV_ID
+	 , V.VD_URL
+  FROM VD V
+ INNER JOIN MV M
+    ON V.MV_ID = M.MV_ID
+ WHERE M.MV_ID = :mvId
+;
+
+SELECT BG.BCKGRND_ID
+	 , BG.MV_ID
+	 , BG.BCKGRND_URL
+  FROM BCKGRND BG
+ INNER JOIN MV M
+    ON M.MV_ID = BG.MV_ID
+ WHERE M.MV_ID = :mvId
+;
+
+SELECT P.PSTR_ID
+     , P.MV_ID
+     , P.PSTR_URL
+  FROM PSTR P
+ INNER JOIN MV M
+    ON M.MV_ID = P.MV_ID
+ WHERE M.MV_ID = :mvId
+;
+
+SELECT STR_ID
+     , INVLVD_ID
+     , MV_ID
+     , RL_NM
+  FROM STR
+ WHERE MV_ID = '1-spider-man-brand-new-day'
+;
+
+SELECT INVLVD_ID
+     , PRFL_URL
+     , NM
+  FROM INVLVD
+ WHERE INVLVD_ID = :mvId
+;
+
+SELECT FLMMK_ID
+     , INVLVD_ID
+     , MV_ID
+     , RL
+     , PRT
+  FROM FLMMK
+ WHERE FLMMK_ID = :mvID
+;

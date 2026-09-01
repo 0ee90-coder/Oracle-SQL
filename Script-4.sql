@@ -1,0 +1,6 @@
+
+-- 시퀀스들의 현재값 출력해보기
+SELECT NO_CYCLE_TEST_SEQ.CURRVAL
+	 , TEST_SEQ.CURRVAL
+  FROM DUAL
+;
